@@ -6,6 +6,7 @@ export default function Acceuil({navigation}) {
     <View style={styles.container}>
       <View style={styles.styleTextTop}>
           <Text style={styles.styleTextPrem}>Afféctation</Text>
+          <Text style={styles.styleTextPrem}>Affectation min et max</Text>
       </View>
       <View>
         <LottieView

@@ -19,7 +19,7 @@ export default function MatrixInput({ matrix, setMatrix, rows, cols }) {
       style={{ flex: 1 }}
       contentContainerStyle={styles.scrollContainer}
       keyboardShouldPersistTaps="handled"
-      extraScrollHeight={100}
+      extraScrollHeight={90}
     >
       <View style={styles.CoutMatrice}>
         <Text style={styles.title}>Matrice de coûts :</Text>
@@ -44,11 +44,29 @@ export default function MatrixInput({ matrix, setMatrix, rows, cols }) {
           </View>
         ))}
       </View>
+      <View style={styles.bottomText}>
+        <Text style={styles.textResoudre}>
+          Faire la resoulition des problémes .
+        </Text>
+      </View>
     </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  bottomText:{
+    marginBottom:0,
+    bottom:0,
+    padding:25,
+    flex:1,
+    flexDirection:'row',
+    alignContent:'center',
+  },
+  textResoudre:{
+    color:'teal',
+    fontFamily:'georgia',
+    fontSize:20,
+  },
   scrollContainer: {
     padding: 0,
     paddingBottom: 130,

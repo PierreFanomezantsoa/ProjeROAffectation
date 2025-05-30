@@ -1,17 +1,25 @@
-export function hungarianAlgorithm(costMatrix) {
+export function hungarianAlgorithm(costMatrix, maximize = false) {
   const steps = [];
   const n = costMatrix.length;
   const m = costMatrix[0].length;
   const size = Math.max(n, m);
 
-  // Étape 0 : Rendre la matrice carrée si nécessaire (ajout de lignes ou colonnes 0)
-  const matrix = Array.from({ length: size }, (_, i) =>
+  // 🔁 Étape 0 : Transformer la matrice si maximisation
+  let matrix = costMatrix.map(row => [...row]); // copie profonde
+  if (maximize) {
+    const maxVal = Math.max(...matrix.flat());
+    matrix = matrix.map(row => row.map(value => maxVal - value));
+    steps.push({ step: "Transformation pour maximisation", matrixSnapshot: matrix.map(r => [...r]) });
+  }
+
+  // 🔲 Étape 1 : Rendre la matrice carrée si nécessaire
+  matrix = Array.from({ length: size }, (_, i) =>
     Array.from({ length: size }, (_, j) =>
-      i < n && j < m ? costMatrix[i][j] : 0
+      i < n && j < m ? matrix[i][j] : 0
     )
   );
 
-  // Étape 1 : Soustraction des minimums de chaque ligne
+  // Étape 2 : Soustraction des minimums de chaque ligne
   for (let i = 0; i < size; i++) {
     const rowMin = Math.min(...matrix[i]);
     for (let j = 0; j < size; j++) {
@@ -20,7 +28,7 @@ export function hungarianAlgorithm(costMatrix) {
   }
   steps.push({ step: "Soustraction ligne", matrixSnapshot: matrix.map(r => [...r]) });
 
-  // Étape 2 : Soustraction des minimums de chaque colonne
+  // Étape 3 : Soustraction des minimums de chaque colonne
   for (let j = 0; j < size; j++) {
     let colMin = Infinity;
     for (let i = 0; i < size; i++) colMin = Math.min(colMin, matrix[i][j]);
@@ -28,13 +36,13 @@ export function hungarianAlgorithm(costMatrix) {
   }
   steps.push({ step: "Soustraction colonne", matrixSnapshot: matrix.map(r => [...r]) });
 
-  // Initialisation pour les étapes suivantes
+  // Initialisation
   const starred = Array.from({ length: size }, () => Array(size).fill(false));
   const primed = Array.from({ length: size }, () => Array(size).fill(false));
   const rowCover = Array(size).fill(false);
   const colCover = Array(size).fill(false);
 
-  // Étape 3 : Étoiler les zéros uniques dans leur ligne/colonne
+  // Étape 4 : Étoiler les zéros uniques
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       if (matrix[i][j] === 0 && !rowCover[i] && !colCover[j]) {
@@ -54,49 +62,33 @@ export function hungarianAlgorithm(costMatrix) {
     }
   }
 
-  const findZero = () => {
+  // Fonctions utilitaires
+  const RecherZero = () => {
     for (let i = 0; i < size; i++) {
       if (!rowCover[i]) {
         for (let j = 0; j < size; j++) {
-          if (matrix[i][j] === 0 && !colCover[j]) {
-            return [i, j];
-          }
+          if (matrix[i][j] === 0 && !colCover[j]) return [i, j];
         }
       }
     }
     return [-1, -1];
   };
 
-  const findStarInRow = (row) => {
-    for (let j = 0; j < size; j++) if (starred[row][j]) return j;
-    return -1;
-  };
-
-  const findStarInCol = (col) => {
-    for (let i = 0; i < size; i++) if (starred[i][col]) return i;
-    return -1;
-  };
-
-  const findPrimeInRow = (row) => {
-    for (let j = 0; j < size; j++) if (primed[row][j]) return j;
-    return -1;
-  };
+  const findStarInRow = (row) => starred[row].findIndex(val => val);
+  const findStarInCol = (col) => starred.findIndex(row => row[col]);
+  const findPrimeInRow = (row) => primed[row].findIndex(val => val);
 
   const augmentPath = (path) => {
-    for (const [i, j] of path) {
-      starred[i][j] = !starred[i][j];
-    }
+    for (const [i, j] of path) starred[i][j] = !starred[i][j];
   };
 
   const clearPrimes = () => {
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) primed[i][j] = false;
-    }
+    for (let i = 0; i < size; i++) primed[i].fill(false);
   };
 
-  // Boucle principale
+  // 🔄 Boucle principale
   while (colCover.filter(Boolean).length < size) {
-    let [zRow, zCol] = findZero();
+    let [zRow, zCol] = RecherZero();
     while (zRow !== -1) {
       primed[zRow][zCol] = true;
       const starCol = findStarInRow(zRow);
@@ -104,10 +96,8 @@ export function hungarianAlgorithm(costMatrix) {
         rowCover[zRow] = true;
         colCover[starCol] = false;
       } else {
-        // Construire le chemin alterné
         const path = [[zRow, zCol]];
-        let row = zRow;
-        let col = zCol;
+        let row = zRow, col = zCol;
         while (true) {
           const starRow = findStarInCol(col);
           if (starRow === -1) break;
@@ -126,11 +116,11 @@ export function hungarianAlgorithm(costMatrix) {
         }
         break;
       }
-      [zRow, zCol] = findZero();
+      [zRow, zCol] = RecherZero();
     }
 
+    // Aucun zéro non couvert : ajustement
     if (zRow === -1) {
-      // Ajustement de la matrice
       let minUncovered = Infinity;
       for (let i = 0; i < size; i++) {
         if (!rowCover[i]) {
@@ -149,13 +139,11 @@ export function hungarianAlgorithm(costMatrix) {
     }
   }
 
-  // Extraction des affectations finales
+  // Résultat final
   const assignment = [];
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < m; j++) {
-      if (starred[i][j]) {
-        assignment.push([i, j]);
-      }
+      if (starred[i][j]) assignment.push([i, j]);
     }
   }
 

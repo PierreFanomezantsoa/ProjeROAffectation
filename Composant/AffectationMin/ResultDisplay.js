@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ResultDisplay({ assignment, rowNames, colNames, matrix }) {
+export default function ResultDisplay({ assignment, rowNames, colNames, matrix, mode }) {
   const totalCost = assignment.reduce(
     (sum, [i, j]) => sum + matrix[i][j],
     0
@@ -9,7 +9,9 @@ export default function ResultDisplay({ assignment, rowNames, colNames, matrix }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Affectation optimale :</Text>
+      <Text style={styles.title}>
+        Affectation {mode === 'max' ? 'maximale' : 'minimale'} :
+      </Text>
 
       {assignment.map(([i, j], index) => (
         <View key={index} style={styles.row}>
@@ -27,10 +29,11 @@ export default function ResultDisplay({ assignment, rowNames, colNames, matrix }
         </View>
       ))}
 
-      <Text style={styles.total}>coût total = {totalCost}</Text>
+      <Text style={styles.total}>Coût total = {totalCost}</Text>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

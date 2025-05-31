@@ -79,14 +79,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     marginBottom: 5,
-    width: 520,
+    width: 400,
     flexWrap: 'wrap',
-    marginLeft: 10,
+    marginLeft: -3, // Adjust to fit the screen
+    justifyContent: 'flex-start',
   },
   cell: {
     borderWidth: 1,
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     textAlign: 'center',
     marginRight: 5,
     borderRadius: 5,

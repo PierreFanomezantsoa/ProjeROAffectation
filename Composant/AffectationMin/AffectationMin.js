@@ -7,7 +7,7 @@ import ResultDisplay from './ResultDisplay';
 import StepTable from './StepTable';
 import { hungarianAlgorithm } from '../../utils/hungarian';
 
-export default function AffectationMin() {
+export default function AffectationMin({navigation}) {
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(3);
   const [matrix, setMatrix] = useState(Array(3).fill().map(() => Array(3).fill(0)));
@@ -61,10 +61,15 @@ export default function AffectationMin() {
     <View style={{ flex: 1 }}>
       <View style={styles.header}>
         <View style={styles.headerBar}>
-          <TouchableOpacity style={styles.refreshButton} onPress={resetAll}>
-            <Icon name="refresh" size={22} color="white" />
+          <TouchableOpacity style={styles.refreshButton} onPress={() => navigation.navigate('accueil')}>
+            <Icon name="long-arrow-left" size={22} color="white" />
           </TouchableOpacity>
-          <Text style={styles.styleTextTop}>Algorithme d'afféctation</Text>
+          <Text style={[styles.styleTextTop, { flex: 1, textAlign: 'center' }]}>
+            Algorithme d'afféctation
+          </Text>
+          <TouchableOpacity style={styles.refreshButton1} onPress={resetAll}>
+            <Icon name="rotate-right" size={22} color="white" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -165,9 +170,15 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   refreshButton: {
-    padding: 10,
+    padding: 4,
     borderRadius: 30,
-    marginRight: 20,
+    marginRight: 15,
+  },
+  // boutton menu à droit 
+  refreshButton1:{
+    padding: 4,
+    borderRadius: 30,
+    marginLeft: 0,
   },
   // hedear bar 
   headerBar: {

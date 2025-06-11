@@ -1,3 +1,5 @@
+// resultat display component for the assignment problem
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 

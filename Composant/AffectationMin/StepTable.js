@@ -5,37 +5,81 @@ export default function StepTable({ steps }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Étapes de marquage :</Text>
-      {steps.map((step, index) => (
-        <View key={index} style={styles.stepBox}>
-          <Text style={styles.stepTitle}>{step.step}</Text>
-          <View style={styles.matrixContainer}>
-            {step.matrixSnapshot.map((row, i) => (
-              <View key={i} style={styles.row}>
-                {row.map((cell, j) => {
-                  const isMarked = step.markedZeros?.some(z => z.row === i && z.col === j);
-                  const isCircled = step.circledZeros?.some(z => z.row === i && z.col === j);
-                  const isCrossed = step.crossedCells?.some(z => z.row === i && z.col === j);
+      {steps.map((step, index) => {
+        const isInitialMarking = step.step === "Marquage initial (étoiles)";
+        const isImprovedAssignment = step.step === "Affectation améliorée";
+        const isAdjustment = step.step === "Ajustement de la matrice";
+        const isFinalResult = step.step === "Résultat final";
 
-                  return (
-                    <View key={j} style={[
-                      styles.cellContainer,
-                      isMarked && styles.markedCell,
-                      isCrossed && styles.crossedCell
-                    ]}>
-                      <Text style={[
-                        styles.cellText,
-                        isCircled && styles.circledZero
-                      ]}>
-                        {cell}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
+        const markedRows = step.crossedCells
+          ? Array.from(new Set(step.crossedCells.map(z => z.row)))
+          : [];
+        const markedCols = step.crossedCells
+          ? Array.from(new Set(step.crossedCells.map(z => z.col)))
+          : [];
+
+        return (
+          <View key={index} style={styles.stepBox}>
+            <Text style={styles.stepTitle}>{step.step}</Text>
+            <View style={styles.matrixContainer}>
+              {step.matrixSnapshot.map((row, i) => (
+                <View key={i} style={styles.row}>
+                  {row.map((cell, j) => {
+                    const isMarked = step.markedZeros?.some(z => z.row === i && z.col === j);
+                    const isCircled = step.circledZeros?.some(z => z.row === i && z.col === j);
+                    const isCrossed = step.crossedCells?.some(z => z.row === i && z.col === j);
+
+                    const isZeroOnMarkedLineOrColumn =
+                      (isInitialMarking || isImprovedAssignment) &&
+                      cell === 0 &&
+                      !isMarked &&
+                      (markedRows.includes(i) || markedCols.includes(j));
+
+                    const showBackground =
+                      isMarked && (isInitialMarking || isImprovedAssignment || isFinalResult);
+
+                    const showBorderOnly =
+                      !isAdjustment && isCrossed && !isMarked;
+
+                    let display = cell.toString();
+                    if (isMarked) display = `✓ ${cell}`;
+                    else if (isCircled) display = `o ${cell}`;
+                    else if (isZeroOnMarkedLineOrColumn || isCrossed) display = ` ${cell}`;
+
+                    return (
+                      <View
+                        key={j}
+                        style={[
+                          styles.cellContainer,
+                          showBackground && styles.markedCell,
+                          (isCrossed || isZeroOnMarkedLineOrColumn) && styles.crossedCell,
+                          isAdjustment && isCrossed && styles.adjustedCell
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.cellText,
+                            isCircled && styles.circledZero,
+                            (isCrossed || isZeroOnMarkedLineOrColumn) && styles.crossedText
+                          ]}
+                        >
+                          {display}
+                        </Text>
+                        {!isAdjustment &&
+                          cell === 0 &&
+                          !isMarked &&
+                          (isCrossed || isZeroOnMarkedLineOrColumn) && (
+                            <View style={styles.diagonalLine} />
+                          )}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -43,15 +87,15 @@ export default function StepTable({ steps }) {
 const styles = StyleSheet.create({
   container: {
     marginTop: 30,
-    backgroundColor:'#f0f0f0',
+    backgroundColor: '#f0f0f0',
     padding: 12,
     marginRight: 10,
-    borderRadius: 10,
+    borderRadius: 10
   },
   title: {
     fontWeight: 'bold',
     fontSize: 18,
-    marginBottom: 10,
+    marginBottom: 10
   },
   stepBox: {
     marginBottom: 20,
@@ -59,19 +103,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 10,
+    backgroundColor: '#fff'
   },
   stepTitle: {
     fontWeight: 'bold',
     marginBottom: 5,
-    color: 'teal',
+    color: '#006666'
   },
   matrixContainer: {
     borderTopWidth: 1,
     borderLeftWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ccc'
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: 'row'
   },
   cellContainer: {
     width: 40,
@@ -80,25 +125,35 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    margin: 0,
+    position: 'relative'
   },
   cellText: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 14
   },
   markedCell: {
-    backgroundColor: 'green',
+    backgroundColor: '#d0f5d5'
   },
   circledZero: {
-    color: 'red',
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: '#cc0000',
+    fontWeight: 'bold'
   },
   crossedCell: {
-    backgroundColor: '#eee',
-    borderWidth: 1,
-    borderColor: '#666',
-    transform: [{ rotateZ: '-45deg' }],
+    borderColor: 'black',
+    borderWidth: 2
+  },
+  crossedText: {
+    color: '#cc0000',
+    fontWeight: 'bold'
+  },
+  diagonalLine: {
+    position: 'absolute',
+    width: 40,
+    height: 1.5,
+    backgroundColor: 'black',
+    transform: [{ rotate: '45deg' }]
+  },
+  adjustedCell: {
+    backgroundColor: '#fff9c4'
   }
 });

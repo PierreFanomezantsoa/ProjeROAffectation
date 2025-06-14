@@ -1,11 +1,28 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function StepTable({ steps }) {
+  const [visibleStepCount, setVisibleStepCount] = useState(1);
+
+  const handleNextStep = () => {
+    if (visibleStepCount < steps.length) {
+      setVisibleStepCount(visibleStepCount + 1);
+    }
+  };
+
+  const handleShowAll = () => {
+    setVisibleStepCount(steps.length);
+  };
+
+  const handleReset = () => {
+    setVisibleStepCount(1);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Étapes de marquage :</Text>
-      {steps.map((step, index) => {
+
+      {steps.slice(0, visibleStepCount).map((step, index) => {
         const isInitialMarking = step.step === "Marquage initial (étoiles)";
         const isImprovedAssignment = step.step === "Affectation améliorée";
         const isAdjustment = step.step === "Ajustement de la matrice";
@@ -37,9 +54,6 @@ export default function StepTable({ steps }) {
 
                     const showBackground =
                       isMarked && (isInitialMarking || isImprovedAssignment || isFinalResult);
-
-                    const showBorderOnly =
-                      !isAdjustment && isCrossed && !isMarked;
 
                     let display = cell.toString();
                     if (isMarked) display = `✓ ${cell}`;
@@ -80,6 +94,23 @@ export default function StepTable({ steps }) {
           </View>
         );
       })}
+
+      <View style={styles.buttonGroup}>
+        {visibleStepCount < steps.length ? (
+          <>
+            <TouchableOpacity style={[styles.button, styles.nextButton]} onPress={handleNextStep}>
+              <Text style={styles.buttonText}>Étape suivante</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.allButton]} onPress={handleShowAll}>
+              <Text style={styles.buttonText}>Afficher toutes</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={handleReset}>
+            <Text style={styles.buttonText}>Réinitialiser</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -155,5 +186,31 @@ const styles = StyleSheet.create({
   },
   adjustedCell: {
     backgroundColor: '#fff9c4'
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+    gap: 10,
+    flexWrap: 'wrap'
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 6,
+    marginHorizontal: 5
+  },
+  nextButton: {
+    backgroundColor: '#007bff'
+  },
+  allButton: {
+    backgroundColor: '#28a745'
+  },
+  resetButton: {
+    backgroundColor: 'teal'
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold'
   }
 });

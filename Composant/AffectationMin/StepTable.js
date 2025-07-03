@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-export default function StepTable({ steps }) {
+export default function StepTable({ steps, rowNames = [], colNames = [] }) {
   const [visibleStepCount, setVisibleStepCount] = useState(1);
 
   const handleNextStep = () => {
@@ -23,6 +23,8 @@ export default function StepTable({ steps }) {
       <Text style={styles.title}>Étapes de marquage :</Text>
 
       {steps.slice(0, visibleStepCount).map((step, index) => {
+        const isRowSubtraction = step.step === "Soustraction par ligne";
+        const isColSubtraction = step.step === "Soustraction par colonne";
         const isInitialMarking = step.step === "Marquage initial (étoiles)";
         const isImprovedAssignment = step.step === "Affectation améliorée";
         const isAdjustment = step.step === "Ajustement de la matrice";
@@ -35,12 +37,38 @@ export default function StepTable({ steps }) {
           ? Array.from(new Set(step.crossedCells.map(z => z.col)))
           : [];
 
+        const minParLigne = isRowSubtraction
+          ? step.matrixSnapshot.map(row => Math.min(...row))
+          : [];
+
+        const minParColonne = step.matrixSnapshot[0]
+          ? step.matrixSnapshot[0].map((_, colIndex) =>
+              Math.min(...step.matrixSnapshot.map(row => row[colIndex]))
+            )
+          : [];
+
         return (
           <View key={index} style={styles.stepBox}>
             <Text style={styles.stepTitle}>{step.step}</Text>
             <View style={styles.matrixContainer}>
+              {/* En-tête colonnes */}
+              <View style={styles.row}>
+                <View style={styles.headerCell} />
+                {colNames.map((name, j) => (
+                  <View key={j} style={styles.headerCell}>
+                    <Text style={styles.headerText}>{name?.trim() || `Tâche ${j + 1}`}</Text>
+                  </View>
+                ))}
+                {isRowSubtraction && <View style={styles.headerCell} />}
+              </View>
+
+              {/* Corps de la matrice */}
               {step.matrixSnapshot.map((row, i) => (
                 <View key={i} style={styles.row}>
+                  <View style={styles.headerCell}>
+                    <Text style={styles.headerText}>{rowNames[i]?.trim() || `Agent ${i + 1}`}</Text>
+                  </View>
+
                   {row.map((cell, j) => {
                     const isMarked = step.markedZeros?.some(z => z.row === i && z.col === j);
                     const isCircled = step.circledZeros?.some(z => z.row === i && z.col === j);
@@ -88,8 +116,32 @@ export default function StepTable({ steps }) {
                       </View>
                     );
                   })}
+
+                  {/* Min ligne à droite */}
+                  {isRowSubtraction && (
+                    <View style={styles.minCell}>
+                      <Text style={[styles.cellText, { fontWeight: 'bold' }]}>
+                        {minParLigne[i]}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               ))}
+
+              {/* Min colonne en bas */}
+              {(isColSubtraction || isRowSubtraction) && (
+                <View style={styles.row}>
+                  <View style={styles.headerCell}>
+                    <Text style={[styles.headerText, { fontWeight: 'bold' }]}>Min col.</Text>
+                  </View>
+                  {minParColonne.map((val, j) => (
+                    <View key={j} style={styles.minCell}>
+                      <Text style={[styles.cellText, { fontWeight: 'bold' }]}>{val}</Text>
+                    </View>
+                  ))}
+                  {isRowSubtraction && <View style={styles.headerCell} />}
+                </View>
+              )}
             </View>
           </View>
         );
@@ -149,11 +201,25 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row'
   },
+  headerCell: {
+    width: 40,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#e0e0e0'
+  },
+  headerText: {
+    fontWeight: 'bold',
+    fontSize: 12,
+    textAlign: 'center'
+  },
   cellContainer: {
     width: 40,
     height: 30,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative'
@@ -170,8 +236,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   crossedCell: {
-    borderColor: 'black',
-    borderWidth: 2
+    borderWidth: 1
   },
   crossedText: {
     color: '#cc0000',
@@ -186,6 +251,15 @@ const styles = StyleSheet.create({
   },
   adjustedCell: {
     backgroundColor: '#fff9c4'
+  },
+  minCell: {
+    backgroundColor: '#d0f5d5',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    width: 40,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   buttonGroup: {
     flexDirection: 'row',

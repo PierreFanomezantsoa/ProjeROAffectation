@@ -130,7 +130,7 @@ export default function AffectationMin({navigation}) {
 
         {result && (
           <>
-            <StepTable steps={result.steps} />
+            <StepTable steps={result.steps} rowNames={rowNames} colNames={colNames} />
             <ResultDisplay
               assignment={result.assignment}
               rowNames={rowNames}

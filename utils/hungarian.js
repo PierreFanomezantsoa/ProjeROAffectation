@@ -18,33 +18,48 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
     Array.from({ length: size }, (_, j) => (i < n && j < m ? matrix[i][j] : 0))
   );
 
-  // Soustraction ligne
+  // ✅ Soustraction ligne
+  const minLigne = matrix.map(row => Math.min(...row));
   for (let i = 0; i < size; i++) {
-    const rowMin = Math.min(...matrix[i]);
-    for (let j = 0; j < size; j++) matrix[i][j] -= rowMin;
+    for (let j = 0; j < size; j++) {
+      matrix[i][j] -= minLigne[i];
+    }
   }
+
+  // ➕ minColonne pour affichage après soustraction ligne
+  const minColonne = matrix[0].map((_, j) =>
+    Math.min(...matrix.map(row => row[j]))
+  );
+
   steps.push({
     step: "Soustraction ligne",
-    matrixSnapshot: matrix.map(r => [...r])
+    matrixSnapshot: matrix.map(r => [...r]),
+    minLigne,
+    minColonne // 🔵 Ceci est utilisé uniquement dans StepTable si step === "Soustraction ligne"
   });
 
-  // Soustraction colonne
+  // ✅ Soustraction colonne (pas besoin d'afficher minColonne ici)
+  const minColonneCol = matrix[0].map((_, j) =>
+    Math.min(...matrix.map(row => row[j]))
+  );
   for (let j = 0; j < size; j++) {
-    let colMin = Infinity;
-    for (let i = 0; i < size; i++) colMin = Math.min(colMin, matrix[i][j]);
-    for (let i = 0; i < size; i++) matrix[i][j] -= colMin;
+    for (let i = 0; i < size; i++) {
+      matrix[i][j] -= minColonneCol[j];
+    }
   }
+
   steps.push({
     step: "Soustraction colonne",
     matrixSnapshot: matrix.map(r => [...r])
+    // AUCUN champ minColonne ici
   });
 
+  // === Marquage initial ===
   const starred = Array.from({ length: size }, () => Array(size).fill(false));
   const primed = Array.from({ length: size }, () => Array(size).fill(false));
   const rowCover = Array(size).fill(false);
   const colCover = Array(size).fill(false);
 
-  // Marquage initial (étoiles)
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       if (matrix[i][j] === 0 && !rowCover[i] && !colCover[j]) {
@@ -55,26 +70,23 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
     }
   }
 
-  const rowCoverSnapshot = [...rowCover];
-  const colCoverSnapshot = [...colCover];
-  rowCover.fill(false);
-  colCover.fill(false);
-
   steps.push({
     step: "Marquage initial (étoiles)",
     matrixSnapshot: matrix.map(r => [...r]),
     markedZeros: getMarkedZeros(starred),
-    crossedCells: getCovered(rowCoverSnapshot, colCoverSnapshot)
+    crossedCells: getCovered([...rowCover], [...colCover])
   });
 
-  // Couvrir colonnes contenant une étoile
+  rowCover.fill(false);
+  colCover.fill(false);
+
   for (let i = 0; i < size; i++) {
     for (let j = 0; j < size; j++) {
       if (starred[i][j]) colCover[j] = true;
     }
   }
 
-  const RecherZero = () => {
+  const findZero = () => {
     for (let i = 0; i < size; i++) {
       if (!rowCover[i]) {
         for (let j = 0; j < size; j++) {
@@ -92,7 +104,7 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
   const clearPrimes = () => primed.forEach(row => row.fill(false));
 
   while (colCover.filter(Boolean).length < size) {
-    let [zRow, zCol] = RecherZero();
+    let [zRow, zCol] = findZero();
     while (zRow !== -1) {
       primed[zRow][zCol] = true;
       const starCol = findStarInRow(zRow);
@@ -120,7 +132,6 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
           }
         }
 
-        // ✅ Ajout des barres sur lignes/colonnes couvertes dans Affectation améliorée
         steps.push({
           step: "Affectation améliorée",
           matrixSnapshot: matrix.map(r => [...r]),
@@ -131,7 +142,7 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
 
         break;
       }
-      [zRow, zCol] = RecherZero();
+      [zRow, zCol] = findZero();
     }
 
     if (zRow === -1) {
@@ -165,6 +176,7 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
       if (starred[i][j]) assignment.push([i, j]);
     }
   }
+
   const totalCost = assignment.reduce((sum, [i, j]) => sum + costMatrix[i][j], 0);
 
   steps.push({
@@ -176,6 +188,7 @@ export function hungarianAlgorithm(costMatrix, maximize = false) {
   return { assignment, totalCost, steps };
 }
 
+// === Helpers ===
 function getMarkedZeros(starred) {
   const list = [];
   starred.forEach((row, i) =>

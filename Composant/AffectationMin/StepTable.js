@@ -23,8 +23,8 @@ export default function StepTable({ steps, rowNames = [], colNames = [] }) {
       <Text style={styles.title}>Étapes de marquage :</Text>
 
       {steps.slice(0, visibleStepCount).map((step, index) => {
-        const isRowSubtraction = step.step === "Soustraction par ligne";
-        const isColSubtraction = step.step === "Soustraction par colonne";
+        const isRowSubtraction = step.step === "Soustraction ligne";
+        const isColSubtraction = step.step === "Soustraction colonne";
         const isInitialMarking = step.step === "Marquage initial (étoiles)";
         const isImprovedAssignment = step.step === "Affectation améliorée";
         const isAdjustment = step.step === "Ajustement de la matrice";
@@ -35,16 +35,6 @@ export default function StepTable({ steps, rowNames = [], colNames = [] }) {
           : [];
         const markedCols = step.crossedCells
           ? Array.from(new Set(step.crossedCells.map(z => z.col)))
-          : [];
-
-        const minParLigne = isRowSubtraction
-          ? step.matrixSnapshot.map(row => Math.min(...row))
-          : [];
-
-        const minParColonne = step.matrixSnapshot[0]
-          ? step.matrixSnapshot[0].map((_, colIndex) =>
-              Math.min(...step.matrixSnapshot.map(row => row[colIndex]))
-            )
           : [];
 
         return (
@@ -59,10 +49,9 @@ export default function StepTable({ steps, rowNames = [], colNames = [] }) {
                     <Text style={styles.headerText}>{name?.trim() || `Tâche ${j + 1}`}</Text>
                   </View>
                 ))}
-                {isRowSubtraction && <View style={styles.headerCell} />}
               </View>
 
-              {/* Corps de la matrice */}
+              {/* Corps du tableau */}
               {step.matrixSnapshot.map((row, i) => (
                 <View key={i} style={styles.row}>
                   <View style={styles.headerCell}>
@@ -116,30 +105,20 @@ export default function StepTable({ steps, rowNames = [], colNames = [] }) {
                       </View>
                     );
                   })}
-
-                  {/* Min ligne à droite */}
-                  {isRowSubtraction && (
-                    <View style={styles.minCell}>
-                      <Text style={[styles.cellText, { fontWeight: 'bold' }]}>
-                        {minParLigne[i]}
-                      </Text>
-                    </View>
-                  )}
                 </View>
               ))}
 
-              {/* Min colonne en bas */}
-              {(isColSubtraction || isRowSubtraction) && (
+              {/* Min colonne en bas (SEULEMENT dans Soustraction ligne) */}
+              {isRowSubtraction && step.minColonne && (
                 <View style={styles.row}>
                   <View style={styles.headerCell}>
                     <Text style={[styles.headerText, { fontWeight: 'bold' }]}>Min col.</Text>
                   </View>
-                  {minParColonne.map((val, j) => (
+                  {step.minColonne.map((val, j) => (
                     <View key={j} style={styles.minCell}>
-                      <Text style={[styles.cellText, { fontWeight: 'bold' }]}>{val}</Text>
+                      <Text style={[styles.cellText, { fontWeight: 'bold', color: 'blue' }]}>{val}</Text>
                     </View>
                   ))}
-                  {isRowSubtraction && <View style={styles.headerCell} />}
                 </View>
               )}
             </View>

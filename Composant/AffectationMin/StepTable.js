@@ -160,9 +160,9 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   stepBox: {
-    marginBottom: 20,
+    marginBottom: 10,
     padding: 10,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: 'gray',
     borderRadius: 10,
     backgroundColor: '#fff'
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     color: '#006666'
   },
   matrixContainer: {
-    borderTopWidth: 1,
+    borderTopWidth: 0,
     borderLeftWidth: 1,
     borderColor: '#ccc'
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   headerCell: {
-    width: 40,
+    width: 34,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   cellContainer: {
-    width: 40,
+    width: 34,
     height: 30,
     borderWidth: 1,
     borderColor: 'black',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#d0f5d5',
     borderWidth: 1,
     borderColor: '#ccc',
-    width: 40,
+    width: 34,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center'
